@@ -18,7 +18,6 @@ options = webdriver.ChromeOptions()
 # options.add_argument('--headless') # hidden mode
 options.add_argument("--start-maximized")
 options.add_argument("--disable-blink-features=AutomationControlled")
-# driver = webdriver.Chrome("C:/Users/gabri/Desktop/Motivated Cognition Lab/7) Lexical/2) Mussolini/chromedriver.exe", options=options)
 #%%
 slp_time1 = 2
 slp_time2 = 0.001
@@ -96,12 +95,12 @@ for d in dfTot['Date']:
         
 dfTot['Wave'] = Wave
 
-# dfTot.to_excel("WarNews_selenium_Urls.xlsx",index_label='ID')
+# dfTot.to_excel("News_selenium_Urls.xlsx",index_label='ID')
 
 #%%
 import pandas as pd
 
-# dfTot = pd.read_excel('WarNews_selenium_Urls.xlsx')
+# dfTot = pd.read_excel('News_selenium_Urls.xlsx')
 Headers = []
 
 # j = 107
