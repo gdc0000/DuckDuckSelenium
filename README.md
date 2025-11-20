@@ -46,6 +46,8 @@ If you use this tool in your research, please cite:
 
 > Lauriola, M., Di Cicco, G., & Savadori, L. (2024). **Apocalypse now or later? Nuclear war risk perceptions mirroring media coverage and emotional tone shifts in Italian news.** *Judgment and Decision Making*, 19(e7), 1–25. doi:10.1017/jdm.2024.2
 
+Complete study materials are available at: [https://osf.io/pduwq/overview](https://osf.io/pduwq/overview)
+
 ## ⚠️ Disclaimer
 
 This tool is for educational and research purposes. Please ensure compliance with the Terms of Service of the websites you scrape.
