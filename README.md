@@ -1,4 +1,4 @@
-# DuckDuckSearch — Parameterized search engine
+# ddg-searcher — DuckDuckGo search engine with SQLite
 
 CLI tool to search **DuckDuckGo** via API (no browser), save results in **SQLite** and extract articles with **trafilatura**.
 
