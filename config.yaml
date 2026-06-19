@@ -1,0 +1,22 @@
+searches:
+- name: ucraina-repubblica
+  keywords: Ucraina AND guerra
+  media_sites:
+  - repubblica.it
+  region: it-it
+  safesearch: moderate
+  timelimit: null
+  date_from: null
+  date_to: null
+  max_results: 50
+  extract_articles: true
+- name: intelligenza-artificiale
+  keywords: intelligenza artificiale
+  media_sites: []
+  region: wt-wt
+  safesearch: moderate
+  timelimit: m
+  date_from: null
+  date_to: null
+  max_results: 20
+  extract_articles: false

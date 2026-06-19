@@ -1,57 +1,73 @@
-# Nuclear War Risk Perception: Italian News Media Scraper
+# DuckDuckSearch — Motore di ricerca parametrizzato
 
-A robust Selenium-based web scraper designed to collect news headlines from DuckDuckGo. This tool was originally developed for the study **"Apocalypse now or later? Nuclear war risk perceptions mirroring media coverage and emotional tone shifts in Italian news"** (Judgment and Decision Making, 2024).
+Tool CLI per cercare su **DuckDuckGo** via API (nessun browser), salvare risultati in **SQLite** ed estrarre articoli con **trafilatura**.
 
-## � Installation
+## Installazione
 
-1.  **Clone the repository**:
-    ```bash
-    git clone <repository_url>
-    cd DuckDuckSelenium
-    ```
+```bash
+pip install -r requirements.txt
+```
 
-2.  **Install dependencies**:
-    Ensure you have Python 3.8+ and Google Chrome installed.
-    ```bash
-    pip install -r requirements.txt
-    ```
+## Uso rapido
 
-## ⚙️ Usage
+```bash
+# Ricerca one-shot
+python main.py search "Ucraina AND guerra" --site repubblica.it --region it-it --max 30
 
-1.  **Configure Input Files**:
-    The scraper relies on three text files in the root directory:
-    *   `Media.txt`: List of news websites to search (e.g., `repubblica.it`).
-    *   `Keywords.txt`: Search terms (e.g., `Ucraina AND guerra`).
-    *   `Date.txt`: Date range for the search (format: `YYYY-MM-DD` to `YYYY-MM-DD`).
+# Ricerca senza salvare (solo stdout)
+python main.py search "Python" --max 5 --no-save
 
-2.  **Run the Scraper**:
-    ```bash
-    python main.py
-    ```
+# Eseguire profili da config.yaml
+python main.py init                          # crea config.yaml di esempio
+python main.py run --all                     # esegue tutti i profili
+python main.py run ucraina-repubblica        # esegue un profilo specifico
 
-    The script performs two main phases:
-    1.  **Search Scraping**: Queries DuckDuckGo for each media outlet and keyword, saving results to `output/search_results.csv`.
-    2.  **Article Scraping**: Visits the collected URLs to extract the full headline (H1), saving to `output/articles_scraped.csv`.
+# Gestione risultati
+python main.py list                          # elenca ricerche fatte
+python main.py list results --search-id 1    # risultati di una ricerca
+python main.py list articles --search-id 1   # articoli estratti
 
-## � Output
+# Scraping articoli (da risultati già salvati)
+python main.py scrape --search-id 1          # estrai articoli per una ricerca
 
-*   `output/search_results.csv`: Contains raw search results including URL, date, and snippet.
-*   `output/articles_scraped.csv`: Contains the final dataset with the extracted article titles.
+# Esportazione
+python main.py export --search-id 1 --format csv
+python main.py export --search-id 1 --format json
+```
 
-**Note**: The tool supports incremental saving and can resume if interrupted.
+## Configurazione (`config.yaml`)
 
-## 📄 Citation
+```yaml
+searches:
+  - name: ucraina-repubblica
+    keywords: "Ucraina AND guerra"
+    media_sites: [repubblica.it]
+    region: it-it
+    safesearch: moderate
+    timelimit: null           # d, w, m, y o null
+    max_results: 50
+    extract_articles: true
+```
 
-If you use this tool in your research, please cite:
+## Architettura
 
-> Lauriola, M., Di Cicco, G., & Savadori, L. (2024). **Apocalypse now or later? Nuclear war risk perceptions mirroring media coverage and emotional tone shifts in Italian news.** *Judgment and Decision Making*, 19(e7), 1–25. doi:10.1017/jdm.2024.2
+```
+config.yaml → main.py (CLI) → searcher.py (DDGS) → db.py (SQLite)
+                                → scraper.py (trafilatura)
+```
 
-Complete study materials are available at: [https://osf.io/pduwq/overview](https://osf.io/pduwq/overview)
+- `searcher.py`: wrapper per la libreria `ddgs` (nessun browser, retry automatico)
+- `scraper.py`: estrazione contenuto articoli via `trafilatura` (titolo, autore, testo, data)
+- `db.py`: layer SQLite con ricerca, risultati e articoli in relazione
+- `cli.py`: interfaccia argparse con subcomandi
 
-## ⚠️ Disclaimer
+## Dipendenze
 
-This tool is for educational and research purposes. Please ensure compliance with the Terms of Service of the websites you scrape.
+- `ddgs` — API DuckDuckGo (senza browser)
+- `trafilatura` — estrazione testo articoli
+- `pyyaml` — configurazione
+- `rich` — formattazione terminale
 
-## 📝 License
+## License
 
-MIT License
+MIT
