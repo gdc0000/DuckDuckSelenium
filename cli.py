@@ -21,39 +21,39 @@ console = Console()
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="duckducksearch",
-        description="DuckDuckSearch — Motore di ricerca DuckDuckGo con SQLite",
+        description="DuckDuckSearch — DuckDuckGo search engine with SQLite storage",
     )
     sub = parser.add_subparsers(dest="command")
 
-    p_search = sub.add_parser("search", help="Ricerca one-shot")
-    p_search.add_argument("keywords", help="Parole chiave")
-    p_search.add_argument("--site", help="Filtra per sito (es. repubblica.it)")
-    p_search.add_argument("--region", default="wt-wt", help="Regione (es. it-it, us-en)")
+    p_search = sub.add_parser("search", help="One-shot search")
+    p_search.add_argument("keywords", help="Search keywords")
+    p_search.add_argument("--site", help="Filter by site (e.g. repubblica.it)")
+    p_search.add_argument("--region", default="wt-wt", help="Region (e.g. it-it, us-en)")
     p_search.add_argument("--safesearch", choices=["on", "moderate", "off"], default="moderate")
     p_search.add_argument("--timelimit", choices=["d", "w", "m", "y"], default=None)
-    p_search.add_argument("--max", type=int, default=20, help="Max risultati")
-    p_search.add_argument("--name", help="Nome per la ricerca")
-    p_search.add_argument("--extract", action="store_true", help="Estrai articoli dopo la ricerca")
-    p_search.add_argument("--no-save", action="store_true", help="Solo stdout, non salvare")
+    p_search.add_argument("--max", type=int, default=20, help="Max results")
+    p_search.add_argument("--name", help="Name for this search")
+    p_search.add_argument("--extract", action="store_true", help="Extract articles after search")
+    p_search.add_argument("--no-save", action="store_true", help="Stdout only, do not save to DB")
 
-    p_run = sub.add_parser("run", help="Esegue profilo/i da config.yaml")
-    p_run.add_argument("profile", nargs="?", help="Nome profilo")
-    p_run.add_argument("--all", action="store_true", help="Esegue tutti i profili")
+    p_run = sub.add_parser("run", help="Run profile(s) from config.yaml")
+    p_run.add_argument("profile", nargs="?", help="Profile name")
+    p_run.add_argument("--all", action="store_true", help="Run all profiles")
 
-    p_scrape = sub.add_parser("scrape", help="Estrae articoli da risultati esistenti")
-    p_scrape.add_argument("--search-id", type=int, help="ID ricerca")
-    p_scrape.add_argument("--all", action="store_true", help="Estrae da tutte le ricerche senza articoli")
+    p_scrape = sub.add_parser("scrape", help="Extract articles from existing results")
+    p_scrape.add_argument("--search-id", type=int, help="Search ID")
+    p_scrape.add_argument("--all", action="store_true", help="Extract from all searches missing articles")
 
-    p_list = sub.add_parser("list", help="Elenca ricerche, risultati o articoli")
+    p_list = sub.add_parser("list", help="List searches, results or articles")
     p_list.add_argument("what", nargs="?", choices=["searches", "results", "articles"], default="searches")
-    p_list.add_argument("--search-id", type=int, help="Filtra per ID ricerca")
+    p_list.add_argument("--search-id", type=int, help="Filter by search ID")
 
-    p_export = sub.add_parser("export", help="Esporta risultati/articoli")
-    p_export.add_argument("--search-id", type=int, required=True, help="ID ricerca")
+    p_export = sub.add_parser("export", help="Export results/articles")
+    p_export.add_argument("--search-id", type=int, required=True, help="Search ID")
     p_export.add_argument("--format", choices=["csv", "json"], default="csv")
-    p_export.add_argument("--output", help="File di output (default: stdout per JSON, export_<id>.csv)")
+    p_export.add_argument("--output", help="Output file (default: stdout for JSON, export_<id>.csv)")
 
-    sub.add_parser("init", help="Crea config.yaml di esempio")
+    sub.add_parser("init", help="Create sample config.yaml")
 
     return parser
 
@@ -77,14 +77,14 @@ def cmd_search(args):
     results = searcher.search_ddg(**kw)
 
     if not results:
-        console.print("[yellow]Nessun risultato[/yellow]")
+        console.print("[yellow]No results[/yellow]")
         if not args.no_save:
             db.update_search_status(search_id, "failed")
         return
 
-    table = Table(title=f"Risultati: {args.keywords}", box=box.SIMPLE)
+    table = Table(title=f"Results: {args.keywords}", box=box.SIMPLE)
     table.add_column("#", style="dim")
-    table.add_column("Titolo")
+    table.add_column("Title")
     table.add_column("URL", style="blue")
     table.add_column("Snippet", style="dim", no_wrap=False)
 
@@ -102,7 +102,7 @@ def cmd_search(args):
             if db.insert_result(search_id, r, pos):
                 count += 1
         db.update_search_status(search_id, "completed")
-        console.print(f"[green]Salvati {count} risultati (search #{search_id})[/green]")
+        console.print(f"[green]Saved {count} results (search #{search_id})[/green]")
 
         if args.extract:
             cmd_scrape_internal(search_id)
@@ -113,7 +113,7 @@ def cmd_search(args):
 def cmd_run(args):
     config_path = "config.yaml"
     if not os.path.exists(config_path):
-        console.print("[red]config.yaml non trovato. Lancia 'python main.py init' per crearne uno.[/red]")
+        console.print("[red]config.yaml not found. Run 'python main.py init' to create one.[/red]")
         return
 
     with open(config_path) as f:
@@ -121,18 +121,18 @@ def cmd_run(args):
 
     profiles = cfg.get("searches", [])
     if not profiles:
-        console.print("[yellow]Nessun profilo in config.yaml[/yellow]")
+        console.print("[yellow]No profiles in config.yaml[/yellow]")
         return
 
     if args.profile:
         profiles = [p for p in profiles if p.get("name") == args.profile]
         if not profiles:
-            console.print(f"[red]Profilo '{args.profile}' non trovato[/red]")
+            console.print(f"[red]Profile '{args.profile}' not found[/red]")
             return
 
     for profile in profiles:
         name = profile.get("name", "unnamed")
-        console.print(f"\n[bold]Esecuzione profilo: {name}[/bold]")
+        console.print(f"\n[bold]Running profile: {name}[/bold]")
 
         kw = {
             "site": None,
@@ -169,7 +169,7 @@ def cmd_run(args):
         results = searcher.search_ddg(**kw)
 
         if not results:
-            console.print("[yellow]  Nessun risultato[/yellow]")
+            console.print("[yellow]  No results[/yellow]")
             db.update_search_status(search_id, "completed")
             continue
 
@@ -179,19 +179,19 @@ def cmd_run(args):
                 count += 1
 
         db.update_search_status(search_id, "completed")
-        console.print(f"  [green]{count} risultati salvati (search #{search_id})[/green]")
+        console.print(f"  [green]{count} results saved (search #{search_id})[/green]")
 
         if profile.get("extract_articles", False) and count > 0:
             cmd_scrape_internal(search_id)
 
 
 def cmd_scrape_internal(search_id):
-    console.print(f"[bold]Estrazione articoli per search #{search_id}...[/bold]")
+    console.print(f"[bold]Extracting articles for search #{search_id}...[/bold]")
     results = db.get_unscraped_results()
     results = [r for r in results if r["search_id"] == search_id]
 
     if not results:
-        console.print("[yellow]  Nessun risultato da estrarre[/yellow]")
+        console.print("[yellow]  No results to extract[/yellow]")
         return
 
     articles = scraper.scrape_results(results)
@@ -200,7 +200,7 @@ def cmd_scrape_internal(search_id):
         if db.insert_article(result_id, article):
             saved += 1
 
-    console.print(f"[green]{saved}/{len(articles)} articoli salvati[/green]")
+    console.print(f"[green]{saved}/{len(articles)} articles saved[/green]")
 
 
 def cmd_scrape(args):
@@ -208,23 +208,23 @@ def cmd_scrape(args):
         db.init_db()
         results = db.get_unscraped_results()
         if not results:
-            console.print("[yellow]Nessun risultato senza articolo[/yellow]")
+            console.print("[yellow]No results without articles[/yellow]")
             return
         by_search = {}
         for r in results:
             by_search.setdefault(r["search_id"], []).append(r)
         for sid, reslist in by_search.items():
-            console.print(f"[bold]Search #{sid}: {len(reslist)} risultati da estrarre[/bold]")
+            console.print(f"[bold]Search #{sid}: {len(reslist)} results to extract[/bold]")
             articles = scraper.scrape_results(reslist)
             saved = 0
             for rid, article in articles:
                 if db.insert_article(rid, article):
                     saved += 1
-            console.print(f"[green]  {saved}/{len(articles)} salvati[/green]")
+            console.print(f"[green]  {saved}/{len(articles)} saved[/green]")
     elif args.search_id:
         cmd_scrape_internal(args.search_id)
     else:
-        console.print("Usa --search-id <id> o --all")
+        console.print("Use --search-id <id> or --all")
 
 
 def cmd_list(args):
@@ -233,16 +233,16 @@ def cmd_list(args):
     if args.what == "searches":
         rows = db.get_searches()
         if not rows:
-            console.print("[yellow]Nessuna ricerca[/yellow]")
+            console.print("[yellow]No searches[/yellow]")
             return
-        table = Table(title="Ricerche", box=box.SIMPLE)
+        table = Table(title="Searches", box=box.SIMPLE)
         table.add_column("ID")
-        table.add_column("Nome")
+        table.add_column("Name")
         table.add_column("Keywords")
-        table.add_column("Sito")
-        table.add_column("Risultati")
-        table.add_column("Stato")
-        table.add_column("Data")
+        table.add_column("Site")
+        table.add_column("Results")
+        table.add_column("Status")
+        table.add_column("Date")
         for r in rows:
             cnt = db.result_count(r["id"])
             table.add_row(str(r["id"]), r["name"] or "", r["keywords"] or "",
@@ -254,13 +254,13 @@ def cmd_list(args):
         sid = args.search_id or console.input("[bold]Search ID: [/bold]")
         rows = db.get_results(int(sid))
         if not rows:
-            console.print("[yellow]Nessun risultato[/yellow]")
+            console.print("[yellow]No results[/yellow]")
             return
-        table = Table(title=f"Risultati search #{sid}", box=box.SIMPLE)
+        table = Table(title=f"Results search #{sid}", box=box.SIMPLE)
         table.add_column("ID")
-        table.add_column("Titolo")
+        table.add_column("Title")
         table.add_column("URL")
-        table.add_column("Pubblicato")
+        table.add_column("Published")
         for r in rows:
             table.add_row(str(r["id"]), (r["title"] or "")[:60],
                           (r["url"] or "")[:60], r["published"] or "")
@@ -270,14 +270,14 @@ def cmd_list(args):
         sid = args.search_id or console.input("[bold]Search ID: [/bold]")
         rows = db.get_articles(int(sid))
         if not rows:
-            console.print("[yellow]Nessun articolo[/yellow]")
+            console.print("[yellow]No articles[/yellow]")
             return
-        table = Table(title=f"Articoli search #{sid}", box=box.SIMPLE)
+        table = Table(title=f"Articles search #{sid}", box=box.SIMPLE)
         table.add_column("ID")
-        table.add_column("Titolo")
-        table.add_column("Autore")
-        table.add_column("Data")
-        table.add_column("Lingua")
+        table.add_column("Title")
+        table.add_column("Author")
+        table.add_column("Date")
+        table.add_column("Language")
         for r in rows:
             table.add_row(str(r["id"]), (r["scraped_title"] or "")[:60],
                           r["author"] or "", r["date"] or "", r["language"] or "")
@@ -288,7 +288,7 @@ def cmd_export(args):
     db.init_db()
     search = db.get_search(args.search_id)
     if not search:
-        console.print(f"[red]Search #{args.search_id} non trovata[/red]")
+        console.print(f"[red]Search #{args.search_id} not found[/red]")
         return
 
     results = db.get_results(args.search_id)
@@ -325,14 +325,14 @@ def cmd_export(args):
                 writer = csv.DictWriter(f, fieldnames=data[0].keys())
                 writer.writeheader()
                 writer.writerows(data)
-        console.print(f"[green]Esportati {len(data)} risultati in {output}[/green]")
+        console.print(f"[green]Exported {len(data)} results to {output}[/green]")
     else:
         if not output:
             print(json.dumps(data, indent=2, ensure_ascii=False))
         else:
             with open(output, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-            console.print(f"[green]Esportati {len(data)} risultati in {output}[/green]")
+        console.print(f"[green]Exported {len(data)} results to {output}[/green]")
 
 
 def cmd_init(_args=None):
@@ -366,15 +366,15 @@ def cmd_init(_args=None):
     }
     if os.path.exists("config.yaml"):
         try:
-            overwrite = console.input("[yellow]config.yaml esiste. Sovrascrivere? (s/N): [/yellow]")
-            if overwrite.lower() != "s":
-                console.print("[dim]Annullato[/dim]")
+            overwrite = console.input("[yellow]config.yaml exists. Overwrite? (y/N): [/yellow]")
+            if overwrite.lower() != "y":
+                console.print("[dim]Cancelled[/dim]")
                 return
         except (EOFError, OSError):
             pass
 
     with open("config.yaml", "w", encoding="utf-8") as f:
         yaml.dump(example, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
-    console.print("[green]config.yaml creato![/green]")
-    console.print("Personalizzalo con i tuoi profili, poi lancia:")
+    console.print("[green]config.yaml created![/green]")
+    console.print("Customize it with your profiles, then run:")
     console.print("  python main.py run --all")

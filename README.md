@@ -1,41 +1,41 @@
-# DuckDuckSearch — Motore di ricerca parametrizzato
+# DuckDuckSearch — Parameterized search engine
 
-Tool CLI per cercare su **DuckDuckGo** via API (nessun browser), salvare risultati in **SQLite** ed estrarre articoli con **trafilatura**.
+CLI tool to search **DuckDuckGo** via API (no browser), save results in **SQLite** and extract articles with **trafilatura**.
 
-## Installazione
+## Installation
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Uso rapido
+## Quick start
 
 ```bash
-# Ricerca one-shot
+# One-shot search
 python main.py search "Ucraina AND guerra" --site repubblica.it --region it-it --max 30
 
-# Ricerca senza salvare (solo stdout)
+# Dry run (stdout only, no DB)
 python main.py search "Python" --max 5 --no-save
 
-# Eseguire profili da config.yaml
-python main.py init                          # crea config.yaml di esempio
-python main.py run --all                     # esegue tutti i profili
-python main.py run ucraina-repubblica        # esegue un profilo specifico
+# Run profiles from config.yaml
+python main.py init                          # creates example config.yaml
+python main.py run --all                     # runs all profiles
+python main.py run ucraina-repubblica        # runs a specific profile
 
-# Gestione risultati
-python main.py list                          # elenca ricerche fatte
-python main.py list results --search-id 1    # risultati di una ricerca
-python main.py list articles --search-id 1   # articoli estratti
+# Manage results
+python main.py list                          # lists saved searches
+python main.py list results --search-id 1    # results of a search
+python main.py list articles --search-id 1   # extracted articles
 
-# Scraping articoli (da risultati già salvati)
-python main.py scrape --search-id 1          # estrai articoli per una ricerca
+# Article extraction (from saved results)
+python main.py scrape --search-id 1          # extract articles for a search
 
-# Esportazione
+# Export
 python main.py export --search-id 1 --format csv
 python main.py export --search-id 1 --format json
 ```
 
-## Configurazione (`config.yaml`)
+## Configuration (`config.yaml`)
 
 ```yaml
 searches:
@@ -44,29 +44,29 @@ searches:
     media_sites: [repubblica.it]
     region: it-it
     safesearch: moderate
-    timelimit: null           # d, w, m, y o null
+    timelimit: null           # d, w, m, y or null
     max_results: 50
     extract_articles: true
 ```
 
-## Architettura
+## Architecture
 
 ```
 config.yaml → main.py (CLI) → searcher.py (DDGS) → db.py (SQLite)
                                 → scraper.py (trafilatura)
 ```
 
-- `searcher.py`: wrapper per la libreria `ddgs` (nessun browser, retry automatico)
-- `scraper.py`: estrazione contenuto articoli via `trafilatura` (titolo, autore, testo, data)
-- `db.py`: layer SQLite con ricerca, risultati e articoli in relazione
-- `cli.py`: interfaccia argparse con subcomandi
+- `searcher.py`: wrapper around the `ddgs` library (no browser, automatic retry)
+- `scraper.py`: article content extraction via `trafilatura` (title, author, text, date)
+- `db.py`: SQLite layer linking searches, results, and articles
+- `cli.py`: argparse interface with subcommands
 
-## Dipendenze
+## Dependencies
 
-- `ddgs` — API DuckDuckGo (senza browser)
-- `trafilatura` — estrazione testo articoli
-- `pyyaml` — configurazione
-- `rich` — formattazione terminale
+- `ddgs` — DuckDuckGo API (no browser)
+- `trafilatura` — article text extraction
+- `pyyaml` — configuration
+- `rich` — terminal formatting
 
 ## License
 
